@@ -1,6 +1,6 @@
-# 桌宠 / MingYue Desktop Pet
+# 一条住你电脑里全自动吃token的大肥鱼
 
-一个面向 **Windows 11 x64** 的 AI 桌面伙伴，使用 Electron、TypeScript 和 React 构建。支持透明动画、拖拽与窗口停靠、聊天、记忆和可审批的本地工具调用。
+面向 **Windows 11 x64** 的 AI 桌面伙伴，使用 Electron、TypeScript 和 React 构建。支持透明动画、拖拽与窗口停靠、聊天、记忆和可审批的本地工具调用。
 
 桌宠可以按配置主动交流、探索网页和阅读 B 站内容；文件访问、窗口观察、截图与键鼠操作需要单独授权。当前为开发预览版，模型接入使用 DeepSeek API，调用费用由使用者承担。
 
