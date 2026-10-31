@@ -1,0 +1,128 @@
+{
+  "name": "mingyue-desktop-pet",
+  "productName": "桌宠",
+  "version": "0.1.0",
+  "description": "DeepSeek 鲸鱼娘桌宠：dsh-pet 透明动画 + 只读行为感知 + 可审批的本地 Agent",
+  "private": true,
+  "license": "MIT",
+  "author": "桌宠 contributors",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "start": "electron-vite preview",
+    "build": "npm run build:pet-page && electron-vite build",
+    "build:pet-page": "node scripts/build-pet-page.mjs",
+    "build:dsh-pet-catalog": "node scripts/build-dsh-pet-catalog.mjs",
+    "docs:tool-contract": "vite-node scripts/generate-tool-contract.ts",
+    "verify:dsh-pet": "node scripts/verify-dsh-pet-vendor.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "pack": "npm run build && electron-builder --win portable && npm run verify:packaged-pet",
+    "dist": "npm run build && electron-builder --win nsis portable && npm run verify:packaged-pet",
+    "verify:packaged-pet": "node scripts/verify-pet-package.mjs",
+    "postinstall": "node scripts/build-pet-page.mjs || echo \"pet page build skipped\""
+  },
+  "dependencies": {
+    "diff": "9.0.0",
+    "qrcode": "1.5.4",
+    "zod": "3.25.76",
+    "zod-to-json-schema": "3.25.2"
+  },
+  "optionalDependencies": {
+    "@vscode/ripgrep": "1.18.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/diff": "8.0.0",
+    "@types/node": "26.6.5",
+    "@types/qrcode": "1.5.5",
+    "@types/react": "18.3.28",
+    "@types/react-dom": "18.3.7",
+    "@vitejs/plugin-react": "6.1.2",
+    "electron": "38.8.6",
+    "electron-builder": "26.15.3",
+    "electron-vite": "6.0.0",
+    "esbuild": "0.28.2",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "typescript": "5.9.3",
+    "vite": "8.3.4",
+    "vitest": "3.2.4"
+  },
+  "build": {
+    "appId": "io.github.mingyue.pet",
+    "productName": "桌宠",
+    "directories": {
+      "output": "release",
+      "buildResources": "resources"
+    },
+    "files": [
+      "out/**/*",
+      "package.json",
+      "NOTICE.md",
+      "LICENSE",
+      "vendor/dsh-pet/assets/webm/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "vendor/dsh-pet/assets/SHA256SUMS",
+        "to": "vendor/dsh-pet/assets/SHA256SUMS"
+      },
+      {
+        "from": "vendor/dsh-pet/assets/catalog.json",
+        "to": "vendor/dsh-pet/assets/catalog.json"
+      },
+      {
+        "from": "vendor/dsh-pet/assets/config.jsonc",
+        "to": "vendor/dsh-pet/assets/config.jsonc"
+      },
+      {
+        "from": "vendor/dsh-pet/LICENSE",
+        "to": "vendor/dsh-pet/LICENSE"
+      },
+      {
+        "from": "vendor/dsh-pet/NOTICE-assets.md",
+        "to": "vendor/dsh-pet/NOTICE-assets.md"
+      },
+      {
+        "from": "vendor/dsh-pet/UPSTREAM.json",
+        "to": "vendor/dsh-pet/UPSTREAM.json"
+      },
+      {
+        "from": "resources",
+        "to": "resources"
+      },
+      {
+        "from": "browser-extension",
+        "to": "browser-extension"
+      }
+    ],
+    "asarUnpack": [
+      "out/main/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "resources/icons/icon.ico"
+    },
+    "portable": {
+      "artifactName": "MingYue-Pet-${version}-portable.exe"
+    },
+    "nsis": {
+      "artifactName": "MingYue-Pet-${version}-setup.exe",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

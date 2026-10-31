@@ -1,0 +1,5 @@
+# MingYue desktop pet - local speech-to-text (CPU int8).
+# Pinned 2026-10-29. No CUDA, no cloud ASR, no implicit model download.
+# Keep this file ASCII-only: pip on Chinese Windows decodes requirements with GBK.
+faster-whisper==1.2.1
+yt-dlp==2026.10.26

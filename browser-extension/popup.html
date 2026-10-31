@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>桌宠 · 网页感知</title>
+    <link rel="stylesheet" href="ui.css" />
+  </head>
+  <body class="popup">
+    <h1>桌宠 · 网页感知</h1>
+    <dl class="status" id="status">
+      <dt>状态</dt><dd class="muted">读取中…</dd>
+    </dl>
+    <label class="check">
+      <input id="paused" type="checkbox" />
+      <span>暂停发送</span>
+    </label>
+    <label class="check">
+      <input id="controlConsent" type="checkbox" />
+      <span>允许主动浏览（需在此勾选；只在她打开的标签页内）</span>
+    </label>
+    <div class="row">
+      <button id="options" class="primary">配对与设置</button>
+      <button id="refresh">刷新</button>
+    </div>
+    <p class="small muted">
+      被动感知只发送当前活跃标签页的标题、域名、摘要与小标题；无痕、密码页和敏感域名会跳过。
+      主动浏览需要单独勾选，且应用内也要开启；她不会读取 Cookie 或填写密码/支付信息。
+    </p>
+    <script src="popup.js"></script>
+  </body>
+</html>

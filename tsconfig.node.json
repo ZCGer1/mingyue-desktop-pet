@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "types": ["node"],
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@core/*": ["src/core/*"],
+      "@persona/*": ["src/persona/*"],
+      "@worlds/*": ["src/worlds/*"],
+      "@shared/*": ["src/shared/*"]
+    }
+  },
+  "include": [
+    "src/core/**/*",
+    "src/persona/**/*",
+    "src/worlds/**/*",
+    "src/bot.ts",
+    "src/botProvider.ts",
+    "src/main/**/*",
+    "src/preload/**/*",
+    "src/shared/**/*",
+    "src/renderer/chat/scrollFollow.ts",
+    "src/renderer/chat/approvalMerge.ts",
+    "src/env.d.ts",
+    "scripts/**/*",
+    "electron.vite.config.ts"
+  ]
+}

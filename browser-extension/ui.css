@@ -1,0 +1,164 @@
+:root {
+  color-scheme: dark;
+  --bg: #12151c;
+  --panel: #1a1f29;
+  --line: #2b3240;
+  --text: #e8ecf4;
+  --muted: #97a1b2;
+  --accent: #7fb4ff;
+  --warn: #ffc46b;
+  --bad: #ff8b8b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.6 "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
+}
+
+main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px 22px 60px;
+}
+
+h1 {
+  font-size: 19px;
+  margin: 0 0 4px;
+}
+
+h2 {
+  font-size: 14px;
+  margin: 26px 0 10px;
+  color: var(--accent);
+}
+
+p,
+li {
+  color: var(--muted);
+}
+
+a {
+  color: var(--accent);
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+label.check {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin-top: 10px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+label.check input {
+  margin-top: 4px;
+}
+
+input[type="text"] {
+  width: 100%;
+  min-width: 280px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: #0e1117;
+  color: var(--text);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
+}
+
+button {
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: #232a36;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+button.primary {
+  background: #2b5d9e;
+  border-color: #376fba;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.status {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 5px 18px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.status dt {
+  color: var(--muted);
+}
+
+.status dd {
+  margin: 0;
+  word-break: break-all;
+}
+
+.ok {
+  color: #8be3a4;
+}
+
+.warn {
+  color: var(--warn);
+}
+
+.bad {
+  color: var(--bad);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 12px;
+}
+
+.popup {
+  width: 360px;
+  margin: 0;
+  padding: 16px;
+}
+
+.popup h1 {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.popup .status {
+  grid-template-columns: 84px 1fr;
+}
+
+ul {
+  padding-left: 20px;
+}

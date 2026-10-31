@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "useDefineForClassFields": true,
+    "types": ["vite/client"],
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["src/shared/*"],
+      "@renderer/*": ["src/renderer/*"]
+    }
+  },
+  "exclude": ["src/shared/path.ts"],
+  "include": [
+    "src/renderer/**/*",
+    "src/pet-page/**/*",
+    "src/shared/**/*",
+    "src/core/types.ts",
+    "src/core/capabilityTypes.ts",
+    "src/core/taskTypes.ts",
+    "src/env.d.ts"
+  ]
+}

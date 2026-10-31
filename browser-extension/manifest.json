@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "桌宠 · 网页感知",
+  "version": "0.4.3",
+  "description": "可选：把活跃标签页摘要发给本机桌宠；经单独同意后，桌宠可在它自己的后台标签页里只读浏览，默认静音且不播放。",
+  "minimum_chrome_version": "102",
+  "incognito": "not_allowed",
+  "permissions": ["tabs", "storage", "scripting", "webNavigation", "alarms", "downloads"],
+  "host_permissions": ["http://*/*", "https://*/*", "http://127.0.0.1/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["extract.js", "content.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    },
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["control.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    },
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["web-guard.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_title": "桌宠 · 网页感知",
+    "default_popup": "popup.html"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  }
+}

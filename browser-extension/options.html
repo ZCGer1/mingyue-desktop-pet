@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>桌宠 · 网页感知设置</title>
+    <link rel="stylesheet" href="ui.css" />
+  </head>
+  <body>
+    <main>
+      <h1>桌宠 · 网页感知</h1>
+      <p>
+        这个扩展只读取<strong>当前窗口的活跃标签页</strong>的标题、域名、正文摘要和少量小标题，
+        通过本机回环地址发送给桌宠。它不读取完整 URL、cookie、localStorage、表单值、
+        选中文本、历史记录或书签。
+      </p>
+
+      <h2>1. 配对</h2>
+      <div class="card">
+        <p class="small">
+          在桌宠的「设置 → 浏览器页面」中复制配对码，形状如
+          <code>43123#&lt;64 位 token&gt;</code>，粘贴到这里。
+        </p>
+        <input id="pairing" type="text" spellcheck="false" autocomplete="off"
+          placeholder="43123#0123abcd…" />
+        <div class="row">
+          <button id="save" class="primary">保存并连接</button>
+          <button id="test">仅测试连接</button>
+          <button id="open-options-note" hidden>打开说明</button>
+        </div>
+        <p id="save-result" class="small" role="status"></p>
+      </div>
+
+      <h2>2. 授权与开关</h2>
+      <div class="card">
+        <label class="check">
+          <input id="consent" type="checkbox" />
+          <span>
+            我了解并同意：扩展会在页面加载、切换标签页和页面内容变化时读取当前活跃标签页，
+            并把上述摘要发送给本机的桌宠。敏感域名、密码输入页和无痕窗口会被跳过；
+            我随时可以暂停或卸载扩展。
+          </span>
+        </label>
+        <label class="check">
+          <input id="paused" type="checkbox" />
+          <span>暂停发送（保留配对信息；应用里也不会再收到新页面）</span>
+        </label>
+        <p class="small muted">
+          真正生效还需要在桌宠「设置 → 浏览器页面」中开启页面感知并保存。任何一侧关闭都不会发送内容。
+        </p>
+      </div>
+
+      <h2>3. 状态</h2>
+      <div class="card">
+        <dl class="status" id="status">
+          <dt>配对</dt><dd class="muted">读取中…</dd>
+        </dl>
+        <div class="row">
+          <button id="refresh">刷新状态</button>
+        </div>
+        <p class="small muted">
+          扩展不在本地保存页面正文；页面内容只在内存中停留到发送完成。
+          如果状态显示“无法连接”，请确认桌宠正在运行且页面感知已开启。
+        </p>
+      </div>
+
+      <h2>安装步骤（开发版）</h2>
+      <ol class="small">
+        <li>在桌宠「设置 → 浏览器页面」中点击“打开扩展文件夹”。</li>
+        <li>Chrome 打开 <code>chrome://extensions</code>；Edge 打开 <code>edge://extensions</code>。</li>
+        <li>开启右上角「开发者模式」，点击「加载已解压的扩展程序」，选择该文件夹。</li>
+        <li>回到本页，粘贴配对码并勾选同意，保存。</li>
+      </ol>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>

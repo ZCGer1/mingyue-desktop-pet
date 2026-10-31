@@ -1,0 +1,73 @@
+{
+  "repository": "https://github.com/PC2005-cloud/dsh-pet",
+  "commit": "2fa04a5133988a1ca901558e9a18f55845128b41",
+  "version": "0.3.8",
+  "fetchedAt": "2026-10-23T13:27:05.495Z",
+  "sourceKind": "github-source",
+  "license": {
+    "code": "MIT (see LICENSE)",
+    "assets": "Allowed for open-source use; commercial use prohibited (see NOTICE-assets.md)."
+  },
+  "adopted": [
+    {
+      "path": "upstream/README.md",
+      "sha256": "c94432904f8f3e28eb852739681920d549cce2897349c87fec3fd7eae77ee810"
+    },
+    {
+      "path": "upstream/assets/config.jsonc",
+      "sha256": "bba867781fcdb63083fac361c8b9dd6bd1ae2a10bd6346f56887a576423bc8a2"
+    },
+    {
+      "path": "upstream/runtime/electron-helper/sprite.js",
+      "sha256": "209bd1fe75d296e8cf4c22251100993525bff086541974284fbbb41437f56e39"
+    },
+    {
+      "path": "upstream/src/client/pet.ts",
+      "sha256": "775450f87029256a8a19d854c0e327d07d369fd59f909b8beac82a9ef28c20a4"
+    },
+    {
+      "path": "upstream/src/shared/constants.ts",
+      "sha256": "f307f1d3304a315b562cb8a98b31a1f2996ae9dd3a2eb49464390dcaf5f1ff0b"
+    },
+    {
+      "path": "upstream/src/shared/displays.ts",
+      "sha256": "8dc877e828b6dae4cd79c20ec31f1fc062007570e02de88b49ad3dfa6475ef0c"
+    },
+    {
+      "path": "upstream/src/shared/menu.ts",
+      "sha256": "b8077714367b673defa8ec40ae1fb90ddeee043b78556265645dab5ea4f6b1e7"
+    },
+    {
+      "path": "upstream/src/shared/motion.ts",
+      "sha256": "ea89835863c0d776fa9b7a6b3658588191b85703aa7ab2b8f701875dcf605dc4"
+    },
+    {
+      "path": "upstream/src/shared/physics.ts",
+      "sha256": "959965fc26008b35686e7945ff29a9e52cd0ddba9e50192f67b0f1810bd0698a"
+    },
+    {
+      "path": "upstream/src/shared/pickers.ts",
+      "sha256": "b4d5658e9141fee57a05bf882ff2f552114294db94d82510252cb4c65316cc5f"
+    },
+    {
+      "path": "upstream/src/shared/types.ts",
+      "sha256": "56bcb692ca8b2cdf761c98e118ea00b3eacda1b23635a3e8e99e17594df3c179"
+    },
+    {
+      "path": "upstream/src/shared/work-status.ts",
+      "sha256": "d12c17e0389bffd3d3a9d2a2dbbd3df60256cdc9eb5ebfed9e28fa3debb53a98"
+    }
+  ],
+  "assets": {
+    "directory": "assets/webm",
+    "config": "assets/config.jsonc",
+    "count": 106,
+    "totalBytes": 54351332,
+    "sha256File": "SHA256SUMS"
+  },
+  "notes": [
+    "Source files were fetched from raw.githubusercontent.com and cdn.jsdelivr.net at the pinned commit.",
+    "The standalone/host application, prompts, source videos and screenshots are not bundled.",
+    "Production code under src/shared/dshPet and src/pet-page/dshPet is an adapted port; diffs are recorded in NOTICE.md."
+  ]
+}

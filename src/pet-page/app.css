@@ -1,0 +1,941 @@
+/* 桌宠页：透明视频舞台（dsh-pet）+ overlay + 快捷输入。 */
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent !important;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  color-scheme: dark;
+  font-family: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/*
+ * 透明舞台：整个窗口默认穿透，命中与拖拽由页面几何探针接管。
+ * .dsh-pet-root 是身体盒；.dsh-pet-stage 向下平移 bottomPad，让视频
+ * 画布的脚底线（330/360）落在 root 底边。两个视频是 A/B 双缓冲，
+ * 只有 .is-front 可见，切换时不会先黑一帧。
+ */
+#stage {
+  position: fixed;
+  inset: 0;
+  z-index: 2147482000;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.dsh-pet-root {
+  position: absolute;
+  overflow: visible;
+  pointer-events: none;
+  will-change: left, top;
+}
+
+.dsh-pet-stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  transform-origin: 0 0;
+}
+
+.dsh-pet-video {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: fill;
+  pointer-events: none;
+  background: transparent;
+  opacity: 0;
+}
+
+.dsh-pet-video.is-front {
+  opacity: 1;
+  z-index: 1;
+}
+
+/* 仅用于诊断/调试的命中框；不参与指针事件，默认不可见。 */
+.dsh-pet-hit {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  border: 1px dashed rgba(126, 224, 255, 0.55);
+}
+
+.dsh-pet-hit[data-dragging="1"] {
+  opacity: 0.35;
+}
+
+/* 播放失败卡：可见、可重试，停在宠物头顶附近；指针可交互。 */
+.dsh-pet-error {
+  position: fixed;
+  z-index: 2147483300;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 10px 8px 12px;
+  border: 1px solid rgba(255, 138, 138, 0.42);
+  border-radius: 12px;
+  background: rgba(34, 15, 20, 0.95);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
+  color: #ffe5e5;
+  font-size: 12px;
+  line-height: 1.45;
+  pointer-events: auto;
+}
+
+.dsh-pet-error[hidden] {
+  display: none !important;
+}
+
+.dsh-pet-error-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dsh-pet-error button {
+  flex: none;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 173, 173, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 138, 138, 0.14);
+  color: #ffecec;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.dsh-pet-error button:hover {
+  background: rgba(255, 138, 138, 0.28);
+}
+
+.dsh-pet-error-dismiss {
+  opacity: 0.75;
+}
+
+/*
+ * 快捷输入的宿主铺满窗口但不拦截事件；只有 .quick-input 本身可交互。
+ * 位置由 quickInput.ts 设置，宽度来自配置。
+ */
+#chat-host {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483100;
+  pointer-events: none;
+}
+
+.quick-input-host {
+  position: fixed;
+  pointer-events: auto;
+}
+
+.quick-input {
+  display: flex;
+  flex-direction: column;
+  max-height: min(62vh, 460px);
+  overflow: hidden;
+  border: 1px solid rgba(151, 178, 220, 0.3);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 10% -10%, rgba(90, 156, 255, 0.24), transparent 44%),
+    rgba(13, 21, 35, 0.95);
+  box-shadow: 0 16px 46px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(22px) saturate(1.2);
+  animation: qi-in 150ms ease-out both;
+}
+
+.qi-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  padding: 7px 8px 7px 12px;
+  border-bottom: 1px solid rgba(151, 178, 220, 0.14);
+}
+
+.qi-phase {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(169, 184, 210, 0.92);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qi-icon {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid rgba(151, 178, 220, 0.18);
+  border-radius: 8px;
+  background: rgba(127, 178, 255, 0.08);
+  color: rgba(232, 238, 251, 0.82);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.qi-icon:hover {
+  background: rgba(127, 178, 255, 0.2);
+}
+
+/* 有未回应的主动开场时，三个轻量反馈按钮；不改变任何权限。 */
+.qi-feedback {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  border-bottom: 1px solid rgba(151, 178, 220, 0.14);
+  background: rgba(24, 44, 78, 0.28);
+}
+
+.qi-feedback-label {
+  margin-right: 2px;
+  color: rgba(169, 184, 210, 0.72);
+  font-size: 10.5px;
+}
+
+.qi-feedback-btn {
+  padding: 3px 8px;
+  border: 1px solid rgba(151, 178, 220, 0.24);
+  border-radius: 999px;
+  background: rgba(127, 178, 255, 0.09);
+  color: rgba(222, 232, 250, 0.9);
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
+.qi-feedback-btn:hover:not(:disabled) {
+  background: rgba(127, 178, 255, 0.22);
+}
+
+.qi-feedback-btn:disabled {
+  opacity: 0.5;
+}
+
+.qi-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  max-height: 268px;
+  overflow-y: auto;
+  padding: 10px 12px;
+}
+
+.qi-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.qi-body::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background: rgba(151, 178, 220, 0.22);
+}
+
+/* 面板只显示状态/提示；回复始终在头顶气泡里。 */
+.qi-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(169, 184, 210, 0.8);
+  font-size: 11.5px;
+}
+
+.qi-task {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid rgba(127, 178, 255, 0.2);
+  border-radius: 9px;
+  background: rgba(24, 44, 78, 0.45);
+}
+
+.qi-task-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.qi-task-title {
+  overflow: hidden;
+  color: rgba(214, 228, 250, 0.94);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qi-task-state {
+  overflow: hidden;
+  color: rgba(169, 184, 210, 0.8);
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qi-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(196, 208, 230, 0.86);
+  font-size: 11.5px;
+}
+
+.qi-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #9cc8ff;
+  font-size: 11.5px;
+  text-decoration: underline;
+}
+
+.qi-link:hover {
+  color: #c4e0ff;
+}
+
+.qi-error {
+  padding: 7px 9px;
+  border: 1px solid rgba(255, 138, 138, 0.28);
+  border-radius: 9px;
+  background: rgba(78, 26, 34, 0.55);
+  color: #ffd0d0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  user-select: text;
+}
+
+/* 快捷面板内联审批：复用聊天审批的配色，但压缩到面板宽度。 */
+.quick-input .qi-approval {
+  margin: 0;
+  padding: 9px 10px;
+  border-radius: 10px;
+}
+
+.quick-input .qi-approval .approval-head {
+  margin-bottom: 5px;
+}
+
+.quick-input .qi-approval .approval-ask {
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  font-size: 11.8px;
+}
+
+.quick-input .qi-approval .approval-title {
+  font-size: 12.5px;
+}
+
+.quick-input .qi-approval .approval-summary {
+  margin-bottom: 6px;
+  font-size: 11.5px;
+}
+
+.quick-input .qi-approval-preview {
+  margin-bottom: 7px;
+  max-height: 170px;
+  overflow: auto;
+}
+
+.quick-input .qi-approval-pre {
+  margin: 0;
+  padding: 7px 8px;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 10.8px;
+  line-height: 1.45;
+  color: #c9d7e8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.quick-input .qi-approval-command {
+  color: #a8ecc7;
+}
+
+.quick-input .qi-approval .approval-actions {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quick-input .qi-approval .approval-actions .btn {
+  padding: 4px 9px;
+  font-size: 11.5px;
+}
+
+.quick-input .qi-composer {
+  flex: 0 0 auto;
+  margin: 0 10px 10px;
+}
+
+@keyframes qi-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+#mingyue-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483001;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+#mingyue-overlay [data-agent-ui] {
+  pointer-events: auto;
+}
+
+#mingyue-overlay .my-status {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  max-width: min(340px, calc(100vw - 24px));
+  padding: 5px 6px 5px 11px;
+  border: 1px solid rgba(142, 185, 255, 0.28);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(20, 30, 50, 0.93), rgba(10, 17, 30, 0.9));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px) saturate(1.2);
+  color: #d9e6ff;
+  font-size: 12px;
+  line-height: 1.35;
+  transform: translateX(-50%);
+  transition: opacity 160ms ease, transform 160ms ease;
+  animation: my-status-in 180ms ease-out both;
+}
+
+#mingyue-overlay .my-status::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7fb2ff;
+  box-shadow: 0 0 0 3px rgba(127, 178, 255, 0.12);
+}
+
+#mingyue-overlay .my-status[data-phase="tools"]::before,
+#mingyue-overlay .my-status[data-phase="delivering"]::before {
+  background: #7ce0c3;
+  box-shadow: 0 0 0 3px rgba(124, 224, 195, 0.12);
+  animation: my-pulse 1.25s ease-in-out infinite;
+}
+
+#mingyue-overlay .my-status[data-phase="backoff"]::before {
+  background: #ffc978;
+  box-shadow: 0 0 0 3px rgba(255, 201, 120, 0.12);
+}
+
+#mingyue-overlay .my-status[data-approval="1"] {
+  border-color: rgba(255, 190, 120, 0.5);
+}
+
+#mingyue-overlay .my-status[data-approval="1"]::before {
+  background: #ffbd6d;
+  box-shadow: 0 0 0 3px rgba(255, 189, 109, 0.14);
+  animation: my-pulse 1.1s ease-in-out infinite;
+}
+
+#mingyue-overlay .my-status[data-paused="1"]::before {
+  background: #a8b6cc;
+  box-shadow: none;
+  animation: none;
+}
+
+#mingyue-overlay .my-status[data-task="1"] {
+  border-color: rgba(127, 178, 255, 0.38);
+}
+
+#mingyue-overlay .my-status[data-task="1"]::before {
+  background: #7fb2ff;
+  box-shadow: 0 0 0 3px rgba(127, 178, 255, 0.12);
+  animation: none;
+}
+
+#mingyue-overlay .my-status-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#mingyue-overlay .my-status-round {
+  flex: none;
+  color: rgba(217, 230, 255, 0.48);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+#mingyue-overlay .my-status button {
+  flex: none;
+  border: 1px solid rgba(142, 185, 255, 0.26);
+  border-radius: 999px;
+  background: rgba(127, 178, 255, 0.14);
+  color: #eaf3ff;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1;
+  padding: 5px 11px;
+  cursor: pointer;
+}
+
+#mingyue-overlay .my-status button:hover {
+  background: rgba(127, 178, 255, 0.26);
+}
+
+#mingyue-overlay .my-status button:active {
+  transform: translateY(1px);
+}
+
+#mingyue-overlay .my-bubble {
+  position: fixed;
+  max-width: min(260px, calc(100vw - 28px));
+  padding: 8px 12px;
+  border: 1px solid rgba(157, 191, 246, 0.24);
+  border-radius: 13px;
+  background: linear-gradient(160deg, rgba(28, 44, 72, 0.95), rgba(14, 24, 42, 0.94));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  color: #e5efff;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  cursor: pointer;
+  animation: my-bubble-in 180ms ease-out both;
+}
+
+#mingyue-overlay .my-bubble[data-kind="reaction"] {
+  border-color: rgba(119, 220, 205, 0.32);
+  background: linear-gradient(160deg, rgba(22, 49, 52, 0.94), rgba(13, 28, 34, 0.94));
+}
+
+#mingyue-overlay .my-bubble[data-kind="say"] {
+  border-color: rgba(180, 200, 255, 0.34);
+}
+
+/* 审批只借用角色气泡的形态；暖色描边不代表风险等级。 */
+#mingyue-overlay .my-bubble[data-kind="approval"] {
+  border-color: rgba(255, 196, 140, 0.34);
+}
+
+#mingyue-overlay .my-bubble[data-kind="approval"]::after {
+  border-color: rgba(255, 196, 140, 0.28);
+}
+
+/* B 站本轮阅读迷你卡：只列标题/作者/分P，点击行才打开浏览器。 */
+#mingyue-overlay .my-bubble[data-kind="bili-report"] {
+  max-width: min(320px, calc(100vw - 28px));
+  cursor: default;
+  white-space: normal;
+  border-color: rgba(140, 190, 255, 0.34);
+}
+
+#mingyue-overlay .my-bubble-videos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+#mingyue-overlay .my-bubble-videos[hidden] {
+  display: none;
+}
+
+#mingyue-overlay .my-bubble-video {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 100%;
+  padding: 5px 7px;
+  border: 1px solid rgba(139, 180, 240, 0.18);
+  border-radius: 8px;
+  background: rgba(120, 170, 245, 0.1);
+  color: #e5efff;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+#mingyue-overlay .my-bubble-video:hover {
+  background: rgba(127, 178, 255, 0.2);
+  border-color: rgba(157, 191, 246, 0.34);
+}
+
+#mingyue-overlay .my-bubble-video:active {
+  transform: translateY(1px);
+}
+
+#mingyue-overlay .my-bubble-video:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+#mingyue-overlay .my-bubble-video-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  color: #f2f7ff;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+#mingyue-overlay .my-bubble-video-meta {
+  overflow: hidden;
+  color: rgba(229, 239, 255, 0.55);
+  font-size: 10px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#mingyue-overlay .my-bubble-hint {
+  display: block;
+  margin-top: 3px;
+  color: rgba(229, 239, 255, 0.55);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+#mingyue-overlay .my-bubble-hint[hidden] {
+  display: none;
+}
+
+#mingyue-overlay .my-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 9px;
+  height: 9px;
+  border-right: 1px solid rgba(157, 191, 246, 0.24);
+  border-bottom: 1px solid rgba(157, 191, 246, 0.24);
+  background: rgba(14, 24, 42, 0.94);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+#mingyue-overlay .my-bubble[data-kind="reaction"]::after {
+  background: rgba(13, 28, 34, 0.94);
+  border-color: rgba(119, 220, 205, 0.28);
+}
+
+#mingyue-overlay .my-bubble[data-below="1"]::after {
+  top: -5px;
+  bottom: auto;
+  transform: translateX(-50%) rotate(225deg);
+}
+
+.pet-fatal {
+  position: fixed;
+  left: 50%;
+  top: 18vh;
+  z-index: 2147483600;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: min(480px, calc(100vw - 48px));
+  padding: 16px 18px;
+  border: 1px solid rgba(255, 137, 137, 0.38);
+  border-radius: 14px;
+  background: rgba(34, 15, 20, 0.94);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+  color: #ffe5e5;
+  font: 400 12px/1.6 "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  user-select: text;
+}
+
+.pet-fatal strong {
+  color: #ffbdbd;
+  font-size: 14px;
+}
+
+.pet-fatal .pet-fatal-hint {
+  color: rgba(255, 229, 229, 0.56);
+}
+
+/* 拖拽到窗口上沿时的预览线；不参与命中测试。 */
+.my-perch-hint {
+  position: fixed;
+  z-index: 40;
+  height: 3px;
+  border-radius: 999px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(126, 224, 255, 0.1),
+    rgba(126, 224, 255, 0.92),
+    rgba(126, 224, 255, 0.1)
+  );
+  box-shadow: 0 0 10px rgba(126, 224, 255, 0.65);
+  animation: my-perch-hint-in 120ms ease-out;
+}
+
+@keyframes my-perch-hint-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .my-perch-hint {
+    animation: none;
+  }
+}
+
+@keyframes my-status-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes my-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes my-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.38;
+  }
+}
+
+/* 快捷输入里的紧凑发现卡片；样式与完整聊天保持一致的字面颜色。 */
+.discovery-card {
+  margin: 2px 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(111, 183, 255, 0.3);
+  border-radius: 12px;
+  background: linear-gradient(160deg, rgba(37, 63, 100, 0.55), rgba(20, 33, 54, 0.72));
+  color: #e8eefb;
+  font-size: 12px;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.discovery-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+
+.discovery-badge {
+  padding: 1px 7px;
+  border: 1px solid rgba(111, 183, 255, 0.4);
+  border-radius: 999px;
+  background: rgba(111, 183, 255, 0.14);
+  color: #bcdcff;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+
+.discovery-evidence {
+  color: #a9b8d2;
+  font-size: 10px;
+}
+
+.discovery-memory {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(255, 201, 120, 0.14);
+  color: #ffc978;
+  font-size: 9.5px;
+}
+
+.discovery-title {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 650;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.discovery-author {
+  margin: 2px 0 0;
+  color: #a9b8d2;
+  font-size: 11px;
+}
+
+.discovery-reason,
+.discovery-summary {
+  margin: 7px 0 0;
+  color: #cfdaee;
+  font-size: 11.5px;
+  line-height: 1.55;
+  word-break: break-word;
+}
+
+.discovery-reason-label {
+  color: #8fb6e6;
+}
+
+.discovery-summary {
+  padding-left: 8px;
+  border-left: 2px solid rgba(111, 183, 255, 0.25);
+  color: #a9b8d2;
+}
+
+.discovery-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 7px;
+}
+
+.discovery-tag {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(151, 178, 220, 0.1);
+  color: #a9b8d2;
+  font-size: 9.5px;
+}
+
+.discovery-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.discovery-open {
+  padding: 4px 11px;
+  border: 1px solid rgba(111, 183, 255, 0.45);
+  border-radius: 999px;
+  background: linear-gradient(160deg, #79c0ff, #3f8fe0);
+  color: #07131f;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.discovery-open:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.discovery-feedback {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.discovery-feedback-btn {
+  padding: 3px 8px;
+  border: 1px solid rgba(151, 178, 220, 0.24);
+  border-radius: 999px;
+  background: rgba(127, 178, 255, 0.08);
+  color: #cfdaee;
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
+.discovery-feedback-btn:hover:not(:disabled) {
+  background: rgba(127, 178, 255, 0.22);
+}
+
+.discovery-feedback-btn.is-active {
+  border-color: rgba(119, 214, 160, 0.55);
+  background: rgba(119, 214, 160, 0.16);
+  color: #d6ffe8;
+}
+
+.discovery-feedback-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.discovery-notice {
+  margin: 7px 0 0;
+  color: #77d6a0;
+  font-size: 10.5px;
+}
+
+.discovery-error {
+  margin: 7px 0 0;
+  color: #ff8a8a;
+  font-size: 10.5px;
+}
+
+.discovery-card-compact {
+  padding: 9px 10px;
+  font-size: 11.5px;
+}
+
+.discovery-card-compact .discovery-title {
+  font-size: 12.5px;
+}
+
+.discovery-card-compact .discovery-reason {
+  margin-top: 5px;
+}
+
+.discovery-card-compact .discovery-actions {
+  margin-top: 7px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #mingyue-overlay .my-status,
+  #mingyue-overlay .my-bubble {
+    animation: none;
+    transition: none;
+  }
+  #mingyue-overlay .my-status::before {
+    animation: none !important;
+  }
+}

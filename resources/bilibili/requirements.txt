@@ -1,0 +1,6 @@
+# MingYue desktop pet - Bilibili read-only service.
+# Pinned 2026-10-29. The installer creates a dedicated venv; system Python is untouched.
+# Keep this file ASCII-only: pip on Chinese Windows decodes requirements with GBK.
+bilibili-api-python==17.4.2
+aiohttp==3.14.5
+Pillow==12.3.0
