@@ -4,10 +4,11 @@
 
 桌宠可以按配置主动交流、探索网页和阅读 B 站内容；文件访问、窗口观察、截图与键鼠操作需要单独授权。当前为开发预览版，模型接入使用 DeepSeek API，调用费用由使用者承担。
 
-## 使用方法
-### 下载安装包
+## 安装包
 
-https://github.com/ZCGer1/mingyue-desktop-pet/releases/tag/v0.1.0
+https://github.com/ZCGer1/mingyue-desktop-pet/releases
+
+## 使用方法
 
 ### 从源码启动
 
